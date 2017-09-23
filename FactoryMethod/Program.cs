@@ -11,79 +11,223 @@ namespace FactoryMethod
     {
         static void Main(string[] args)
         {
-            Car theCar = new CompactCar();
-            theCar = new Navigation(theCar);
-            theCar = new Sunroof(theCar);
-            theCar = new LeatherSeats(theCar);
+            INewspaper nyt = new NYPaper();
+            INewspaper lat = new LAPaper();
 
-            Console.WriteLine(theCar.GetDescription());
-            Console.WriteLine($"{theCar.GetCarPrice():C2}");
-            Console.ReadKey();
-        }
-    }
-    public abstract class Car
-    {
-        public string Description { get; set; }
-        public abstract string GetDescription();
-        public abstract double GetCarPrice();
-    }
-    public class CompactCar : Car
-    {
-        public CompactCar()
-        {
-            Description = "Compact Car";
-        }
-        public override double GetCarPrice() => 20000.00;
-        public override string GetDescription() => Description;
-    }
-    public class FullSizeCar : Car
-    {
-        public FullSizeCar()
-        {
-            Description = "Full Size Car";
-        }
-        public override double GetCarPrice() => 50000.00;
-        public override string GetDescription() => Description;
+            IIterator nypIterator = nyt.CreateIterator();
+            IIterator lapIterator = lat.CreateIterator();
 
-    }
-    public class CarDecorator : Car
-    {
-        protected Car _car;
-        public CarDecorator(Car car)
-        {
-            _car = car;
-        }
-        public override double GetCarPrice() => _car.GetCarPrice();
-        public override string GetDescription() => _car.GetDescription();
             
-    }
-    public class LeatherSeats : CarDecorator
-    {
-        public LeatherSeats(Car car) : base(car)
-        {
-            Description = "Leather Seats";
+
+            Console.WriteLine(" -------- NYPaper");
+            PrintReporters(nypIterator);
+
+            Console.WriteLine(" ---------LAPaper");
+            PrintReporters(lapIterator);
+
+            Console.ReadLine();
         }
-        public override string GetDescription() => $"{_car.GetDescription()}, {Description}";
-        public override double GetCarPrice() => _car.GetCarPrice() + 3500;
-    }
-    public class Sunroof : CarDecorator
-    {
-        public Sunroof(Car car) : base(car)
+        static void PrintReporters(IIterator iterator)
         {
-            Description = "Sunroof";
+            iterator.First();
+            while (!iterator.IsDone())
+            {
+                Console.WriteLine(iterator.Next());
+            }
+
         }
-        public override string GetDescription() => $"{_car.GetDescription()}, {Description}";
-        public override double GetCarPrice() => _car.GetCarPrice() + 2500;
-    }
-    public class Navigation : CarDecorator
-    {
-        public Navigation(Car car) : base(car)
+        public void AddReporter(string newReporter)
         {
-            Description = "Navigation";
+            _reporters.Add(newReporter);
         }
-        public override string GetDescription() => $"{_car.GetDescription()}, {Description}";
-        public override double GetCarPrice() => _car.GetCarPrice() + 2000;
     }
+
+    //Aggregate
+    public interface INewspaper
+    {
+        IIterator CreateIterator();
+    }
+    public class LAPaper : INewspaper
+    {
+        private string[] _reporters;
+        public LAPaper()
+        {
+            _reporters = new[] { "Ronald Smith - LA",
+                                "Danny Glover - LA",
+                                "Yolanda Adams - LA",
+                                "Jerry Straight - LA",
+                                "Rhonda Lime - LA",
+            };
+        }
+        public IIterator CreateIterator()
+        {
+            return new LAPaperIterator(_reporters);
+        }
+
+    }
+    public class NYPaper : INewspaper
+    {
+        public List<string> _reporters;
+        public NYPaper()
+        {
+            _reporters = new List<string>
+            {
+                "John Mesh - NY",
+                "Susanna Lee - NY",
+                "Paul Randy - NY",
+                "Kim Fields - NY",
+                "Sky Taylor"
+            };
+        }
+        public IIterator CreateIterator()
+        {
+            return new NYPaperIterator(_reporters);
+        }
+
+        
+    }
+
+
+    public interface IIterator
+    {
+        void First();
+        string Next();
+        bool IsDone();
+        string CurrentTime();
+    }
+
+    public class LAPaperIterator : IIterator  //handling an array 
+    {
+        private string[] _reporters;
+        private int _current;
+
+        public LAPaperIterator(string[] _reporters)
+        {
+            this._reporters = _reporters;
+            _current = 0;
+        }
+        public string CurrentTime()
+        {
+            return _reporters[_current];
+        }
+        public void First()
+        {
+            _current = 0;
+        }
+        public bool IsDone()
+        {
+            return _current >= _reporters.Length;
+        }
+        public string Next()
+        {
+            return _reporters[_current++];
+        }
+    }
+
+    public class NYPaperIterator : IIterator  //handling a list
+    {
+        private List<string> _reporters;
+        private int _current;
+
+        public NYPaperIterator(List<string> _reporters)
+        {
+            this._reporters = _reporters;
+            _current = 0;
+        }
+        public string CurrentTime()
+        {
+            return _reporters.ElementAt(_current);
+        }
+        public void First()
+        {
+            _current = 0;
+        }
+        public bool IsDone()
+        {
+            return _current >= _reporters.Count;
+        }
+        public string Next()
+        {
+            return _reporters.ElementAt(_current++);
+        }
+    }
+    //class Program  // Decorator Pattern
+    //{
+    //    static void Main(string[] args)
+    //    {
+    //        Car theCar = new CompactCar();
+    //        theCar = new Navigation(theCar);
+    //        theCar = new Sunroof(theCar);
+    //        theCar = new LeatherSeats(theCar);
+
+    //        Console.WriteLine(theCar.GetDescription());
+    //        Console.WriteLine($"{theCar.GetCarPrice():C2}");
+    //        Console.ReadKey();
+    //    }
+    //}
+    //public abstract class Car
+    //{
+    //    public string Description { get; set; }
+    //    public abstract string GetDescription();
+    //    public abstract double GetCarPrice();
+    //}
+    //public class CompactCar : Car
+    //{
+    //    public CompactCar()
+    //    {
+    //        Description = "Compact Car";
+    //    }
+    //    public override double GetCarPrice() => 20000.00;
+    //    public override string GetDescription() => Description;
+    //}
+    //public class FullSizeCar : Car
+    //{
+    //    public FullSizeCar()
+    //    {
+    //        Description = "Full Size Car";
+    //    }
+    //    public override double GetCarPrice() => 50000.00;
+    //    public override string GetDescription() => Description;
+
+    //}
+    //public class CarDecorator : Car
+    //{
+    //    protected Car _car;
+    //    public CarDecorator(Car car)
+    //    {
+    //        _car = car;
+    //    }
+    //    public override double GetCarPrice() => _car.GetCarPrice();
+    //    public override string GetDescription() => _car.GetDescription();
+
+    //}
+    //public class LeatherSeats : CarDecorator
+    //{
+    //    public LeatherSeats(Car car) : base(car)
+    //    {
+    //        Description = "Leather Seats";
+    //    }
+    //    public override string GetDescription() => $"{_car.GetDescription()}, {Description}";
+    //    public override double GetCarPrice() => _car.GetCarPrice() + 3500;
+    //}
+    //public class Sunroof : CarDecorator
+    //{
+    //    public Sunroof(Car car) : base(car)
+    //    {
+    //        Description = "Sunroof";
+    //    }
+    //    public override string GetDescription() => $"{_car.GetDescription()}, {Description}";
+    //    public override double GetCarPrice() => _car.GetCarPrice() + 2500;
+    //}
+    //public class Navigation : CarDecorator
+    //{
+    //    public Navigation(Car car) : base(car)
+    //    {
+    //        Description = "Navigation";
+    //    }
+    //    public override string GetDescription() => $"{_car.GetDescription()}, {Description}";
+    //    public override double GetCarPrice() => _car.GetCarPrice() + 2000;
+    //}
 
     //    class Program  // Singleton
 
