@@ -36,10 +36,6 @@ namespace FactoryMethod
             }
 
         }
-        public void AddReporter(string newReporter)
-        {
-            _reporters.Add(newReporter);
-        }
     }
 
     //Aggregate
