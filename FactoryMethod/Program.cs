@@ -7,146 +7,268 @@ using System.Threading.Tasks;
 
 namespace FactoryMethod
 {
-    class Program  // Decorator Pattern
+    class Program  //  Observer Pattern
     {
         static void Main(string[] args)
         {
-            INewspaper nyt = new NYPaper();
-            INewspaper lat = new LAPaper();
 
-            IIterator nypIterator = nyt.CreateIterator();
-            IIterator lapIterator = lat.CreateIterator();
+            var gClooney = new GClooney("I love my new wife");
+            var tSwift = new TSwift("1981 is now my favorite number.");
 
-            
+            var firstFan = new Fan();
+            var secondFan = new Fan();
 
-            Console.WriteLine(" -------- NYPaper");
-            PrintReporters(nypIterator);
-
-            Console.WriteLine(" ---------LAPaper");
-            PrintReporters(lapIterator);
-
-            Console.ReadLine();
+            gClooney.AddFollower(firstFan);
+            tSwift.AddFollower(secondFan);
+          
+            gClooney.Tweet = "My wife didn't force me to tweet.";
+            tSwift.Tweet = "I did not kill myself.";
         }
-        static void PrintReporters(IIterator iterator)
+
+    }
+    public interface ICelebrity
+    {
+        string FullName { get; set; }
+        string Tweet { get; set; }
+        void Notify(string tweet);
+        void AddFollower(IFan fan);
+        void RemoveFollower(IFan fan);
+    }
+    public interface IFan
+    {
+        void Update(ICelebrity celebrity);
+    }
+
+    public class Fan : IFan
+    {
+        public void Update(ICelebrity celebrity)
         {
-            iterator.First();
-            while (!iterator.IsDone())
+            Console.WriteLine($"Fan notified. Tweet of {celebrity.FullName}: " + $"{celebrity.Tweet}");
+        }
+    }
+    public class GClooney : ICelebrity
+    {
+        private readonly List<IFan> _fans = new List<IFan>();
+        private string _tweet;
+        private string fullName = "George Clooney";
+
+        string ICelebrity.FullName { get { return fullName; } set { Notify(value); } }
+        public GClooney(string tweet)
+        {
+            _tweet = tweet;
+      
+        }
+        
+        public string Tweet
+        {
+            get { return _tweet; }
+            set
             {
-                Console.WriteLine(iterator.Next());
+                Notify(value);
             }
-
         }
-    }
+        
+        
 
-    //Aggregate
-    public interface INewspaper
-    {
-        IIterator CreateIterator();
-    }
-    public class LAPaper : INewspaper
-    {
-        private string[] _reporters;
-        public LAPaper()
+        public void AddFollower(IFan fan)
         {
-            _reporters = new[] { "Ronald Smith - LA",
-                                "Danny Glover - LA",
-                                "Yolanda Adams - LA",
-                                "Jerry Straight - LA",
-                                "Rhonda Lime - LA",
-            };
+            _fans.Add(fan);
         }
-        public IIterator CreateIterator()
+        public void RemoveFollower(IFan fan)
         {
-            return new LAPaperIterator(_reporters);
+            _fans.Remove(fan);
         }
-
-    }
-    public class NYPaper : INewspaper
-    {
-        public List<string> _reporters;
-        public NYPaper()
+        public void Notify(string tweet)
         {
-            _reporters = new List<string>
+            _tweet = tweet;
+            foreach(var fan in _fans)
             {
-                "John Mesh - NY",
-                "Susanna Lee - NY",
-                "Paul Randy - NY",
-                "Kim Fields - NY",
-                "Sky Taylor"
-            };
+                fan.Update(this);
+            }
         }
-        public IIterator CreateIterator()
+    }
+    public class TSwift : ICelebrity
+    {
+        private readonly List<IFan> _fans = new List<IFan>();
+        private string _tweet;
+        private string fullName = "Taylor Swift";
+        string ICelebrity.FullName { get { return fullName; } set { Notify(value); } }
+
+        public TSwift(string tweet)
         {
-            return new NYPaperIterator(_reporters);
+            _tweet = tweet;
+        }
+        
+        public string Tweet
+        {
+            get { return _tweet; }
+            set
+            {
+                Notify(value);
+            }
         }
 
         
+
+        public void AddFollower(IFan fan)
+        {
+            _fans.Add(fan);
+        }
+        public void RemoveFollower(IFan fan)
+        {
+            _fans.Remove(fan);
+        }
+        public void Notify(string tweet)
+        {
+            _tweet = tweet;
+            foreach (var fan in _fans)
+            {
+                fan.Update(this);
+            }
+        }
     }
 
 
-    public interface IIterator
-    {
-        void First();
-        string Next();
-        bool IsDone();
-        string CurrentTime();
-    }
+    //class Program  // Decorator Pattern
+    //{
+    //    static void Main(string[] args)
+    //    {
+    //        INewspaper nyt = new NYPaper();
+    //        INewspaper lat = new LAPaper();
 
-    public class LAPaperIterator : IIterator  //handling an array 
-    {
-        private string[] _reporters;
-        private int _current;
+    //        IIterator nypIterator = nyt.CreateIterator();
+    //        IIterator lapIterator = lat.CreateIterator();
 
-        public LAPaperIterator(string[] _reporters)
-        {
-            this._reporters = _reporters;
-            _current = 0;
-        }
-        public string CurrentTime()
-        {
-            return _reporters[_current];
-        }
-        public void First()
-        {
-            _current = 0;
-        }
-        public bool IsDone()
-        {
-            return _current >= _reporters.Length;
-        }
-        public string Next()
-        {
-            return _reporters[_current++];
-        }
-    }
 
-    public class NYPaperIterator : IIterator  //handling a list
-    {
-        private List<string> _reporters;
-        private int _current;
 
-        public NYPaperIterator(List<string> _reporters)
-        {
-            this._reporters = _reporters;
-            _current = 0;
-        }
-        public string CurrentTime()
-        {
-            return _reporters.ElementAt(_current);
-        }
-        public void First()
-        {
-            _current = 0;
-        }
-        public bool IsDone()
-        {
-            return _current >= _reporters.Count;
-        }
-        public string Next()
-        {
-            return _reporters.ElementAt(_current++);
-        }
-    }
+    //        Console.WriteLine(" -------- NYPaper");
+    //        PrintReporters(nypIterator);
+
+    //        Console.WriteLine(" ---------LAPaper");
+    //        PrintReporters(lapIterator);
+
+    //        Console.ReadLine();
+    //    }
+    //    static void PrintReporters(IIterator iterator)
+    //    {
+    //        iterator.First();
+    //        while (!iterator.IsDone())
+    //        {
+    //            Console.WriteLine(iterator.Next());
+    //        }
+
+    //    }
+    //}
+
+    ////Aggregate
+    //public interface INewspaper
+    //{
+    //    IIterator CreateIterator();
+    //}
+    //public class LAPaper : INewspaper
+    //{
+    //    private string[] _reporters;
+    //    public LAPaper()
+    //    {
+    //        _reporters = new[] { "Ronald Smith - LA",
+    //                            "Danny Glover - LA",
+    //                            "Yolanda Adams - LA",
+    //                            "Jerry Straight - LA",
+    //                            "Rhonda Lime - LA",
+    //        };
+    //    }
+    //    public IIterator CreateIterator()
+    //    {
+    //        return new LAPaperIterator(_reporters);
+    //    }
+
+    //}
+    //public class NYPaper : INewspaper
+    //{
+    //    public List<string> _reporters;
+    //    public NYPaper()
+    //    {
+    //        _reporters = new List<string>
+    //        {
+    //            "John Mesh - NY",
+    //            "Susanna Lee - NY",
+    //            "Paul Randy - NY",
+    //            "Kim Fields - NY",
+    //            "Sky Taylor"
+    //        };
+    //    }
+    //    public IIterator CreateIterator()
+    //    {
+    //        return new NYPaperIterator(_reporters);
+    //    }
+
+
+    //}
+
+
+    //public interface IIterator
+    //{
+    //    void First();
+    //    string Next();
+    //    bool IsDone();
+    //    string CurrentTime();
+    //}
+
+    //public class LAPaperIterator : IIterator  //handling an array 
+    //{
+    //    private string[] _reporters;
+    //    private int _current;
+
+    //    public LAPaperIterator(string[] _reporters)
+    //    {
+    //        this._reporters = _reporters;
+    //        _current = 0;
+    //    }
+    //    public string CurrentTime()
+    //    {
+    //        return _reporters[_current];
+    //    }
+    //    public void First()
+    //    {
+    //        _current = 0;
+    //    }
+    //    public bool IsDone()
+    //    {
+    //        return _current >= _reporters.Length;
+    //    }
+    //    public string Next()
+    //    {
+    //        return _reporters[_current++];
+    //    }
+    //}
+
+    //public class NYPaperIterator : IIterator  //handling a list
+    //{
+    //    private List<string> _reporters;
+    //    private int _current;
+
+    //    public NYPaperIterator(List<string> _reporters)
+    //    {
+    //        this._reporters = _reporters;
+    //        _current = 0;
+    //    }
+    //    public string CurrentTime()
+    //    {
+    //        return _reporters.ElementAt(_current);
+    //    }
+    //    public void First()
+    //    {
+    //        _current = 0;
+    //    }
+    //    public bool IsDone()
+    //    {
+    //        return _current >= _reporters.Count;
+    //    }
+    //    public string Next()
+    //    {
+    //        return _reporters.ElementAt(_current++);
+    //    }
+    //}
     //class Program  // Decorator Pattern
     //{
     //    static void Main(string[] args)
